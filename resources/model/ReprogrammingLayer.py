@@ -1,6 +1,6 @@
-from torch import nn, Tensor
+import torch.nn as nn
+from torch import Tensor
 import torch
-from math import sqrt
 
 
 class ReprogarmmingLayer(nn.Module):
