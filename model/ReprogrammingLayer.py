@@ -3,11 +3,11 @@ from torch import Tensor
 import torch
 
 
-class ReprogarmmingLayer(nn.Module):
+class ReprogrammingLayer(nn.Module):
     def __init__(
         self, d_model, n_heads, d_keys=None, d_llm=None, attention_dropout=0.1
     ):
-        super(ReprogarmmingLayer, self).__init__()
+        super(ReprogrammingLayer, self).__init__()
 
         d_keys = d_keys or (d_model // n_heads)
 
