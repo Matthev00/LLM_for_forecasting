@@ -72,5 +72,9 @@ class TimeLLM(nn.Module):
             self.tokenizer.add_special_tokens({"pad_token": pad_token})
             self.tokenizer.pad_token = pad_token
 
+    def _freeze_llm(self):
+        for param in self.llm_model.parameters():
+            param.requires_grad = False
+
 
 TimeLLM = TimeLLM()
