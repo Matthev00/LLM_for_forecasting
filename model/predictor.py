@@ -22,6 +22,8 @@ class TimeLLM(nn.Module):
 
         self._set_llm_model(config)
         self._set_tokenizer()
+        self._set_pad_token()
+        self.description = configs.content
 
     def forward(self, x):
         return self.forecast(x)
@@ -60,6 +62,14 @@ class TimeLLM(nn.Module):
                 trust_remote_code=True,
                 local_files_only=False,
             )
+
+    def _set_pad_token(self):
+        if self.tokenizer.eos_token:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+        else:
+            pad_token = "[PAD]"
+            self.tokenizer.add_special_tokens({"pad_token": pad_token})
+            self.tokenizer.pad_token = pad_token
 
 
 TimeLLM = TimeLLM()
