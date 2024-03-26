@@ -23,6 +23,7 @@ class TimeLLM(nn.Module):
         self._set_llm_model(config)
         self._set_tokenizer()
         self._set_pad_token()
+        self._freeze_llm()
         self.description = configs.content
 
     def forward(self, x):
