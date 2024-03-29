@@ -47,11 +47,11 @@ class TimeLLM(nn.Module):
 
         self.normalize_layer = NormalizeLayer(configs.enc_in, affine=False)
 
-    def forward(self, x) -> Tensor:
-        return self.forecast(x)
+    def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec) -> Tensor:
+        return self.forecast(x_enc, x_mark_enc, x_dec, x_mark_dec)
 
-    def forecast(self, x) -> Tensor:
-        return x
+    def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec) -> Tensor:
+        return None
 
     def _set_llm_model(self):
         config = GPT2Config.from_pretrained("openai-community/gpt2")
