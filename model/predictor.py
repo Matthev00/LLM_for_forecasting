@@ -8,6 +8,8 @@ import torch.nn as nn
 from torch import Tensor
 import torch
 
+from typing import List
+
 
 class TimeLLM(nn.Module):
     def __init__(self, configs=None):
@@ -59,12 +61,10 @@ class TimeLLM(nn.Module):
         prompt = self._generate_prompt(x_enc)
         x_enc = x_enc.reshape(B, N, T).permute(0, 2, 1).contiguous()
 
-
     def _calculate_lags(x: Tensor) -> Tensor:
         return x
 
     def _generate_prompt(self, x_enc) -> List[str]:
-
         min_values = torch.min(x_enc, dim=1)[0]
         max_value = torch.max(x_enc, dim=1)[0]
         medians = torch.max(x_enc, dim=1).values
