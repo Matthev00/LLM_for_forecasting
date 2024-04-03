@@ -6,6 +6,7 @@ from FlattenHead import FlattenHead
 from transformers import GPT2Config, GPT2Model, GPT2Tokenizer
 import torch.nn as nn
 from torch import Tensor
+import torch
 
 
 class TimeLLM(nn.Module):
