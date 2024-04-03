@@ -52,7 +52,43 @@ class TimeLLM(nn.Module):
         return self.forecast(x_enc, x_mark_enc, x_dec, x_mark_dec)
 
     def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec) -> Tensor:
-        return None
+        x_enc = self.normalize_layer(x_enc, mode="norm")
+
+        B, T, N = x_enc.size()
+        x_enc = x_enc.permute(0, 2, 1).contiguous().reshape(B * N, T, 1)
+        prompt = self._generate_prompt(x_enc)
+        x_enc = x_enc.reshape(B, N, T).permute(0, 2, 1).contiguous()
+
+
+    def _calculate_lags(x: Tensor) -> Tensor:
+        return x
+
+    def _generate_prompt(self, x_enc) -> List[str]:
+
+        min_values = torch.min(x_enc, dim=1)[0]
+        max_value = torch.max(x_enc, dim=1)[0]
+        medians = torch.max(x_enc, dim=1).values
+        lags = self._calculate_lags(x_enc)
+        trends = x_enc.diff(dim=1).sum(dim=1)
+
+        prompt = []
+        for batch in range(x_enc.size[0]):
+            min_values_str = str(min_values[batch].tolist()[0])
+            max_values_str = str(max_value[batch].tolist()[0])
+            medians_str = str(medians[batch].tolist()[0])
+            lags_str = str(lags[batch].tolist())
+            prompt_ = (
+                f"<|start_prompt|>Dataset description: {self.description}"
+                f"Task description: forecast the next {str(self.configs.pred_len)} steps given the previous {str(self.seq_len)} steps information; "
+                "Input statistics: "
+                f"min value {min_values_str}, "
+                f"max value {max_values_str}, "
+                f"median value {medians_str}, "
+                f"the trend of input is {'upward' if trends[batch] > 0 else 'downward'}, "
+                f"top 5 lags are : {lags_str}<|<end_prompt>|>"
+            )
+            prompt.append(prompt_)
+        return prompt
 
     def _set_llm_model(self):
         config = GPT2Config.from_pretrained("openai-community/gpt2")
