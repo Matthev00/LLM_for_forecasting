@@ -50,16 +50,48 @@ class TimeLLM(nn.Module):
 
         self.normalize_layer = NormalizeLayer(configs.enc_in, affine=False)
 
-    def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec) -> Tensor:
-        return self.forecast(x_enc, x_mark_enc, x_dec, x_mark_dec)
+    def forward(self, x_enc) -> Tensor:
+        return self.forecast(x_enc)
 
-    def forecast(self, x_enc, x_mark_enc, x_dec, x_mark_dec) -> Tensor:
+    def forecast(self, x_enc) -> Tensor:
         x_enc = self.normalize_layer(x_enc, mode="norm")
 
         B, T, N = x_enc.size()
         x_enc = x_enc.permute(0, 2, 1).contiguous().reshape(B * N, T, 1)
         prompt = self._generate_prompt(x_enc)
         x_enc = x_enc.reshape(B, N, T).permute(0, 2, 1).contiguous()
+
+        prompt = self.tokenizer(
+            prompt, return_tensors="pt", padding=True, truncation=True, max_length=2048
+        ).input_ids
+        prompt_embeddings = self.llm_model.get_input_embeddings()(
+            prompt.to(x_enc.device)
+        )  # (batch, prompt_token, dim)
+
+        source_embeddings = self.mapping_layer(
+            self.word_embeddings.permute(1, 0)
+        ).permute(1, 0)
+
+        x_enc = x_enc.permute(0, 2, 1).contiguous()
+        enc_out, n_vars = self.patch_embedding(x_enc.to(torch.bfloat16))
+        enc_out = self.reprogramming_layer(
+            enc_out, source_embeddings, source_embeddings
+        )
+        llama_enc_out = torch.cat([prompt_embeddings, enc_out], dim=1)
+        dec_out = self.llm_model(inputs_embeds=llama_enc_out).last_hidden_state
+        dec_out = dec_out[:, :, : self.d_ff]
+
+        dec_out = torch.reshape(
+            dec_out, (-1, n_vars, dec_out.shape[-2], dec_out.shape[-1])
+        )
+        dec_out = dec_out.permute(0, 1, 3, 2).contiguous()
+
+        dec_out = self.output_projection(dec_out[:, :, :, -self.patch_nums:])
+        dec_out = dec_out.permute(0, 2, 1).contiguous()
+
+        dec_out = self.normalize_layers(dec_out, "denorm")
+
+        return dec_out
 
     def _calculate_lags(self, x_enc: Tensor, top_k: int = 5) -> Tensor:
         q_fft = torch.fft.rfft(x_enc.permute(0, 2, 1).contiguous(), dim=-1)
