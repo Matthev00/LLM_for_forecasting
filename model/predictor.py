@@ -61,8 +61,14 @@ class TimeLLM(nn.Module):
         prompt = self._generate_prompt(x_enc)
         x_enc = x_enc.reshape(B, N, T).permute(0, 2, 1).contiguous()
 
-    def _calculate_lags(x: Tensor) -> Tensor:
-        return x
+    def _calculate_lags(self, x_enc: Tensor, top_k: int = 5) -> Tensor:
+        q_fft = torch.fft.rfft(x_enc.permute(0, 2, 1).contiguous(), dim=-1)
+        k_fft = torch.fft.rfft(x_enc.permute(0, 2, 1).contiguous(), dim=-1)
+        res = q_fft * torch.conj(k_fft)
+        corr = torch.fft.irfft(res, dim=-1)
+        mean_value = torch.mean(corr, dim=1)
+        _, lags = torch.topk(mean_value, top_k, dim=-1)
+        return lags
 
     def _generate_prompt(self, x_enc) -> List[str]:
         min_values = torch.min(x_enc, dim=1)[0]
