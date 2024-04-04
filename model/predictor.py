@@ -51,7 +51,8 @@ class TimeLLM(nn.Module):
         self.normalize_layer = NormalizeLayer(configs.enc_in, affine=False)
 
     def forward(self, x_enc) -> Tensor:
-        return self.forecast(x_enc)
+        dec_out = self.forecast(x_enc)
+        return dec_out[:, -self.pred_len:, :]
 
     def forecast(self, x_enc) -> Tensor:
         x_enc = self.normalize_layer(x_enc, mode="norm")
