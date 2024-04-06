@@ -1,7 +1,7 @@
-from embed_layers import PatchEmbedder
-from NormalizeLayer import NormalizeLayer
-from ReprogrammingLayer import ReprogrammingLayer
-from FlattenHead import FlattenHead
+from model.embed_layers import PatchEmbedder
+from model.NormalizeLayer import NormalizeLayer
+from model.ReprogrammingLayer import ReprogrammingLayer
+from model.FlattenHead import FlattenHead
 
 from transformers import GPT2Config, GPT2Model, GPT2Tokenizer
 import torch.nn as nn
@@ -176,6 +176,3 @@ class TimeLLM(nn.Module):
     def _freeze_llm(self):
         for param in self.llm_model.parameters():
             param.requires_grad = False
-
-
-TimeLLM = TimeLLM()
