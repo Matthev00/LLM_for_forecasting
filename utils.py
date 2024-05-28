@@ -37,3 +37,14 @@ def parse_argument():
     )
     parser.add_argument("--learning_rate", type=float, default=0.0001)
     parser.add_argument("--pct_start", type=float, default=0.2)
+
+
+def adjust_lr(
+    optimizer: torch.optim.Optimizer,
+    scheduler: torch.optim.lr_scheduler,
+    epoch: int,
+    args,
+):
+    new_lr = args.learning_rate * (0.5 ** ((epoch - 1) // 1))
+    for param_group in optimizer.param_groups:
+        param_group["lr"] = new_lr
