@@ -1,8 +1,11 @@
 import torch
 from torch.utils.tensorboard import SummaryWriter  # noqa 5501
 
+from utils import adjust_lr
+
 from tqdm import tqdm
 from typing import Tuple, Dict, List
+from timeit import default_timer as timer
 
 
 def train(
@@ -16,23 +19,39 @@ def train(
     mae_metric: torch.nn.Module,
     epochs: int = 10,
     device: torch.device = "cuda:0",
+    writer: SummaryWriter = None,
 ) -> Dict[str, List[float]]:
     results = {
         "train_loss": [],
         "valid_loss": [],
+        "mae_loss": [],
     }
     for epoch in range(epochs):
+        start = timer()
         train_loss = train_step(
             model, train_loader, optim, scheduler, criterion, mae_metric
         )
-        # Update scheduler
-        valid_loss = valid_step(model, valid_loader, criterion, mae_metric)
+        adjust_lr(optim, scheduler, epoch, args)
+
+        valid_loss, mae_loss = valid_step(model, valid_loader, criterion, mae_metric)
 
         results["train_loss"].append(train_loss)
         results["valid_loss"].append(valid_loss)
-        # print info
+        results["mae_loss"].append(mae_loss)
 
-        # add tensorboard writer
+        print(f"Epoch {epoch+1}/{epochs}\nTime: {timer()-start}")
+        print(f"Train Loss: {train_loss}\nValid Loss: {valid_loss}")
+
+        writer.add_scalars(main_tag="Loss",
+                           tag_scalar_dict={"train_loss": train_loss,
+                                            "test_loss": valid_loss},
+                           global_step=epoch)
+
+        writer.add_scalars(main_tag="MAE Loss",
+                           tag_scalar_dict={"mae_loss": mae_loss},
+                           global_step=epoch)
+
+    writer.close()
     return results
 
 
