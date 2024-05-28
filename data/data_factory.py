@@ -1,12 +1,12 @@
 from torch.utils.data import DataLoader
 from typing import Tuple
 
-from data_provider_pretrain.data_loader import Dataset_ETT_hour, Dataset_ETT_minute
+from data.data_loader import ETThour_Dataset
 
-data_dict = {"ETTh1": Dataset_ETT_hour}
+data_dict = {"ETTh1": ETThour_Dataset}
 
 
-def data_provider(args, flag: str = "train") -> Tuple[Dataset_ETT_minute, DataLoader]:
+def data_provider(args, flag: str = "train") -> Tuple[ETThour_Dataset, DataLoader]:
     Data = data_dict[args.data]
     timeenc = 0 if args.embed != "timeF" else 1
     percent = args.percent

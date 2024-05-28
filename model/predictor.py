@@ -131,7 +131,7 @@ class TimeLLM(nn.Module):
 
     def _set_llm_model(self):
         config = GPT2Config.from_pretrained("openai-community/gpt2")
-        config.num_hidden_layers = self.configs.n_layers
+        config.num_hidden_layers = self.configs.llm_layers
         config.output_attentions = True
         config.output_hidden_states = True
         try:

@@ -28,6 +28,7 @@ def parse_argument():
     parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--patch_len", type=int, default=16)
     parser.add_argument("--stride", type=int, default=8)
+    parser.add_argument('--llm_layers', type=int, default=6)
 
     # optimization
     parser.add_argument("--train_epochs", type=int, default=10)
@@ -37,6 +38,8 @@ def parse_argument():
     )
     parser.add_argument("--learning_rate", type=float, default=0.0001)
     parser.add_argument("--pct_start", type=float, default=0.2)
+    args = parser.parse_args()
+    return args
 
 
 def adjust_lr(

@@ -1,6 +1,6 @@
 from torch.utils.data import Dataset
 
-from data.timefeatures import time_features
+from data.time_features import time_features
 from pathlib import Path
 from typing import Tuple
 import pandas as pd
