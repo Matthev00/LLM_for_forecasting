@@ -1,6 +1,7 @@
 import torch.nn as nn
 from torch import Tensor
 import torch
+from math import sqrt
 
 
 class ReprogrammingLayer(nn.Module):
@@ -11,7 +12,7 @@ class ReprogrammingLayer(nn.Module):
 
         d_keys = d_keys or (d_model // n_heads)
 
-        self.query = nn.Linear(d_model, d_keys, *n_heads)
+        self.query = nn.Linear(d_model, d_keys * n_heads)
         self.key = nn.Linear(d_llm, d_keys * n_heads)
         self.value = nn.Linear(d_llm, d_keys * n_heads)
         self.out = nn.Linear(d_keys * n_heads, d_llm)

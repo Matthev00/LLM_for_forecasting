@@ -36,7 +36,7 @@ class TimeLLM(nn.Module):
         self.mapping_layer = nn.Linear(vocab_size, num_tokens)
 
         self.reprogramming_layer = ReprogrammingLayer(
-            configs.d_model, configs.n_heads, configs.d_ff, configs.d_llm
+            configs.d_model, configs.n_heads, configs.d_ff, configs.llm_dim
         )
 
         self.patch_nums = int(
@@ -45,14 +45,14 @@ class TimeLLM(nn.Module):
         self.head_nf = configs.d_ff * self.patch_nums
 
         self.output_projection = FlattenHead(
-            configs.enc_in, self.head_nf, configs.pred_len, head_dropout=configs.dropout
+            self.head_nf, configs.pred_len, head_dropout=configs.dropout
         )
 
         self.normalize_layer = NormalizeLayer(configs.enc_in, affine=False)
 
     def forward(self, x_enc) -> Tensor:
         dec_out = self.forecast(x_enc)
-        return dec_out[:, -self.pred_len:, :]
+        return dec_out[:, -self.pred_len :, :]
 
     def forecast(self, x_enc) -> Tensor:
         x_enc = self.normalize_layer(x_enc, mode="norm")
@@ -74,7 +74,7 @@ class TimeLLM(nn.Module):
         ).permute(1, 0)
 
         x_enc = x_enc.permute(0, 2, 1).contiguous()
-        enc_out, n_vars = self.patch_embedding(x_enc.to(torch.bfloat16))
+        enc_out, n_vars = self.patch_embedder(x_enc.to(torch.bfloat16))
         enc_out = self.reprogramming_layer(
             enc_out, source_embeddings, source_embeddings
         )
@@ -87,7 +87,7 @@ class TimeLLM(nn.Module):
         )
         dec_out = dec_out.permute(0, 1, 3, 2).contiguous()
 
-        dec_out = self.output_projection(dec_out[:, :, :, -self.patch_nums:])
+        dec_out = self.output_projection(dec_out[:, :, :, -self.patch_nums :])
         dec_out = dec_out.permute(0, 2, 1).contiguous()
 
         dec_out = self.normalize_layers(dec_out, "denorm")
@@ -111,14 +111,14 @@ class TimeLLM(nn.Module):
         trends = x_enc.diff(dim=1).sum(dim=1)
 
         prompt = []
-        for batch in range(x_enc.size[0]):
+        for batch in range(x_enc.shape[0]):
             min_values_str = str(min_values[batch].tolist()[0])
             max_values_str = str(max_value[batch].tolist()[0])
             medians_str = str(medians[batch].tolist()[0])
             lags_str = str(lags[batch].tolist())
             prompt_ = (
                 f"<|start_prompt|>Dataset description: {self.description}"
-                f"Task description: forecast the next {str(self.configs.pred_len)} steps given the previous {str(self.seq_len)} steps information; "
+                f"Task description: forecast the next {str(self.configs.pred_len)} steps given the previous {str(self.configs.seq_len)} steps information; "
                 "Input statistics: "
                 f"min value {min_values_str}, "
                 f"max value {max_values_str}, "
