@@ -3,7 +3,7 @@ from typing import Tuple
 
 from data.data_loader import ETThour_Dataset
 
-data_dict = {"ETTh1": ETThour_Dataset}
+data_dict = {"ETT": ETThour_Dataset}
 
 
 def data_provider(args, flag: str = "train") -> Tuple[ETThour_Dataset, DataLoader]:
@@ -21,12 +21,11 @@ def data_provider(args, flag: str = "train") -> Tuple[ETThour_Dataset, DataLoade
     freq = args.freq
 
     data_set = Data(
-        root_path=args.root_path,
+        # root_path=args.root_path,
         flag=flag,
         size=(args.seq_len, args.label_len, args.pred_len),
         features=args.features,
         target=args.target,
-        scale=args.scale,
         timeenc=timeenc,
         freq=freq,
         percent=percent,

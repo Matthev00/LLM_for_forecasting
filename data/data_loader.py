@@ -63,8 +63,8 @@ class ETThour_Dataset(Dataset):
             12 * 30 * 24 + 8 * 30 * 24,  # test_end
         ]
 
-        start_border = start_borders[self.set_type]
-        end_border = end_borders[self.set_type]
+        start_border = start_borders[self.type]
+        end_border = end_borders[self.type]
 
         if self.features == "M" or self.features == "MS":
             cols_data = df_raw.columns[1:]
