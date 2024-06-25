@@ -29,11 +29,24 @@ def train(
     for epoch in range(epochs):
         start = timer()
         train_loss = train_step(
-            model, train_loader, optim, scheduler, criterion, mae_metric
+            args=args,
+            model=model,
+            dataloader=train_loader,
+            optim=optim,
+            scheduler=scheduler,
+            criterion=criterion,
+            device=device,
         )
         adjust_lr(optim, scheduler, epoch, args)
 
-        valid_loss, mae_loss = valid_step(model, valid_loader, criterion, mae_metric)
+        valid_loss, mae_loss = valid_step(
+            args=args,
+            model=model,
+            valid_loader=valid_loader,
+            criterion=criterion,
+            mae_metric=mae_metric,
+            device=device,
+        )
 
         results["train_loss"].append(train_loss)
         results["valid_loss"].append(valid_loss)
@@ -42,23 +55,27 @@ def train(
         print(f"Epoch {epoch+1}/{epochs}\nTime: {timer()-start}")
         print(f"Train Loss: {train_loss}\nValid Loss: {valid_loss}")
 
-        writer.add_scalars(main_tag="Loss",
-                           tag_scalar_dict={"train_loss": train_loss,
-                                            "test_loss": valid_loss},
-                           global_step=epoch)
+        if writer:
+            writer.add_scalars(
+                main_tag="Loss",
+                tag_scalar_dict={"train_loss": train_loss, "test_loss": valid_loss},
+                global_step=epoch,
+            )
 
-        writer.add_scalars(main_tag="MAE Loss",
-                           tag_scalar_dict={"mae_loss": mae_loss},
-                           global_step=epoch)
-
-    writer.close()
+            writer.add_scalars(
+                main_tag="MAE Loss",
+                tag_scalar_dict={"mae_loss": mae_loss},
+                global_step=epoch,
+            )
+    if writer:
+        writer.close()
     return results
 
 
 def train_step(
     args,
     model: torch.nn.Module,
-    train_loader: torch.utils.data.DataLoader,
+    dataloader: torch.utils.data.DataLoader,
     optim: torch.optim.Optimizer,
     scheduler: torch.optim.lr_scheduler.OneCycleLR,
     criterion: torch.nn.Module,
@@ -67,21 +84,12 @@ def train_step(
     model.train()
     train_loss = 0.0
     for i, (batch_x, batch_y, batch_x_mark, batch_y_mark) in tqdm(
-        enumerate(train_loader)
+        enumerate(dataloader)
     ):
         batch_x = batch_x.float().to(device)
         batch_y = batch_y.float().to(device)
-        batch_x_mark = batch_x_mark.float().to(device)
-        batch_y_mark = batch_y_mark.float().to(device)
 
-        dec_inp = torch.zeros_like(batch_y[:, -args.pred_len :, :]).float().to(device)
-        dec_inp = (
-            torch.cat([batch_y[:, : args.label_len, :], dec_inp], dim=1)
-            .float()
-            .to(device)
-        )
-
-        outputs = model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
+        outputs = model(batch_x)[0]
 
         f_dim = -1 if args.features == "MS" else 0
         outputs = outputs[:, -args.pred_len :, f_dim:]
@@ -92,7 +100,7 @@ def train_step(
         optim.zero_grad()
         loss.backward
         optim.step()
-    return train_loss / len(train_loader)
+    return train_loss / len(dataloader)
 
 
 def valid_step(
@@ -112,19 +120,8 @@ def valid_step(
         ):
             batch_x = batch_x.float().to(device)
             batch_y = batch_y.float().to(device)
-            batch_x_mark = batch_x_mark.float().to(device)
-            batch_y_mark = batch_y_mark.float().to(device)
 
-            dec_inp = (
-                torch.zeros_like(batch_y[:, -args.pred_len :, :]).float().to(device)
-            )
-            dec_inp = (
-                torch.cat([batch_y[:, : args.label_len, :], dec_inp], dim=1)
-                .float()
-                .to(device)
-            )
-
-            outputs = model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
+            outputs = model(batch_x)[0]
 
             f_dim = -1 if args.features == "MS" else 0
             outputs = outputs[:, -args.pred_len :, f_dim:]
