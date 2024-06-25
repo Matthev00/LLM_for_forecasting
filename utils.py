@@ -14,6 +14,27 @@ def set_seeds(seed: int = 42):
 
 def parse_argument():
     parser = argparse.ArgumentParser(description="TimeLLM")
+    # data
+    parser.add_argument("--data", type=str, default="ETT", help="dataset type")
+    parser.add_argument(
+        "--embed",
+        type=str,
+        default="timeF",
+        help="time features encoding, options:[timeF, fixed, learned]",
+    )
+    parser.add_argument(
+        "--freq", type=str, default="h", help="freq for time features encoding"
+    )
+    parser.add_argument(
+        "--features",
+        type=str,
+        default="M",
+        help="forecasting task, options:[M, S, MS]; "
+        "M:multivariate predict multivariate, S: univariate predict univariate, "
+        "MS:multivariate predict univariate",
+    )
+    parser.add_argument('--target', type=str, default='OT', help='target feature in S or MS task')
+
     # forecasting task
     parser.add_argument("--seq_len", type=int, default=96, help="input sequence length")
     parser.add_argument("--label_len", type=int, default=48, help="start token length")
@@ -28,7 +49,11 @@ def parse_argument():
     parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--patch_len", type=int, default=16)
     parser.add_argument("--stride", type=int, default=8)
-    parser.add_argument('--llm_layers', type=int, default=6)
+    parser.add_argument("--llm_layers", type=int, default=6)
+    parser.add_argument("--d_ff", type=int, default=32, help="dimension of fcn")
+    parser.add_argument(
+        "--llm_dim", type=int, default="768", help="LLM model dimension"
+    )
 
     # optimization
     parser.add_argument("--train_epochs", type=int, default=10)
@@ -38,6 +63,8 @@ def parse_argument():
     )
     parser.add_argument("--learning_rate", type=float, default=0.0001)
     parser.add_argument("--pct_start", type=float, default=0.2)
+    parser.add_argument("--percent", type=int, default=100)
+
     args = parser.parse_args()
     return args
 
@@ -51,3 +78,10 @@ def adjust_lr(
     new_lr = args.learning_rate * (0.5 ** ((epoch - 1) // 1))
     for param_group in optimizer.param_groups:
         param_group["lr"] = new_lr
+
+
+def load_content(args):
+    file = args.data
+    with open("./data/prompt_bank/{0}.txt".format(file), "r") as f:
+        content = f.read()
+    return content
