@@ -32,7 +32,7 @@ class ReprogrammingLayer(nn.Module):
 
         out = out.reshape(B, L, -1)
 
-        return self.out_projection(out)
+        return self.out(out)
 
     def reprogramming(
         self, target_embedding, source_embedding, value_embedding

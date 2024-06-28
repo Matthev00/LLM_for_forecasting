@@ -52,7 +52,7 @@ class TimeLLM(nn.Module):
 
     def forward(self, x_enc) -> Tensor:
         dec_out = self.forecast(x_enc)
-        return dec_out[:, -self.pred_len :, :]
+        return dec_out[:, -self.configs.pred_len :, :]
 
     def forecast(self, x_enc) -> Tensor:
         x_enc = self.normalize_layer(x_enc, mode="norm")
@@ -78,9 +78,9 @@ class TimeLLM(nn.Module):
         enc_out = self.reprogramming_layer(
             enc_out, source_embeddings, source_embeddings
         )
-        llama_enc_out = torch.cat([prompt_embeddings, enc_out], dim=1)
-        dec_out = self.llm_model(inputs_embeds=llama_enc_out).last_hidden_state
-        dec_out = dec_out[:, :, : self.d_ff]
+        llm_enc_out = torch.cat([prompt_embeddings, enc_out], dim=1)
+        dec_out = self.llm_model(inputs_embeds=llm_enc_out).last_hidden_state
+        dec_out = dec_out[:, :, : self.configs.d_ff]
 
         dec_out = torch.reshape(
             dec_out, (-1, n_vars, dec_out.shape[-2], dec_out.shape[-1])
@@ -90,7 +90,7 @@ class TimeLLM(nn.Module):
         dec_out = self.output_projection(dec_out[:, :, :, -self.patch_nums :])
         dec_out = dec_out.permute(0, 2, 1).contiguous()
 
-        dec_out = self.normalize_layers(dec_out, "denorm")
+        dec_out = self.normalize_layer(dec_out, "denorm")
 
         return dec_out
 
