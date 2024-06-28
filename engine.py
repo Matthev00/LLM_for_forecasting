@@ -87,13 +87,14 @@ def train_step(
         enumerate(dataloader)
     ):
         batch_x = batch_x.float().to(device)
-        batch_y = batch_y.float().to(device)
+        batch_y = batch_y[-1, :, :].float().to(device)
 
         outputs = model(batch_x)[0]
 
         f_dim = -1 if args.features == "MS" else 0
-        outputs = outputs[:, -args.pred_len :, f_dim:]
-        batch_y = batch_y[:, -args.pred_len :, f_dim:]
+        outputs = outputs[-args.pred_len :, f_dim:]
+        batch_y = batch_y[-args.pred_len :, f_dim:]
+
         loss = criterion(outputs, batch_y)
         train_loss += loss.item()
 
