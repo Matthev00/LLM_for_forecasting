@@ -32,6 +32,7 @@ class TokenEmbedder(nn.Module):
                 )
 
     def forward(self, x: Tensor) -> Tensor:
+        x = x.to(torch.float32)
         return self.tokenconv(x.permute(0, 2, 1)).transpose(1, 2)
 
 
@@ -48,7 +49,7 @@ class PatchEmbedder(nn.Module):
         n_vars = x.shape[1]
         x = self.padding_patch_layer(x)
         x = x.unfold(dimension=-1, size=self.patch_len, step=self.stride)
-        x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2] * x.shape[3]))
+        x = torch.reshape(x, (x.shape[0] * x.shape[1], x.shape[2], x.shape[3]))
         x = self.value_embedding(x)
         x = self.dropout(x)
         return x, n_vars
