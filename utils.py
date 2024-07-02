@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import random
 import argparse
+from pathlib import Path
 
 
 def set_seeds(seed: int = 42):
@@ -85,3 +86,9 @@ def load_content(args):
     with open("./data/prompt_bank/{0}.txt".format(file), "r") as f:
         content = f.read()
     return content
+
+
+def save_model(model: torch.nn.Module, model_name:str):
+    dir_path = Path("./model/pretrained")
+    dir_path.mkdir(parents=True, exist_ok=True)
+    torch.save(model.state_dict(), dir_path / model_name)
