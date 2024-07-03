@@ -86,7 +86,7 @@ class ETThour_Dataset(Dataset):
             df_stamp["day"] = df_stamp.date.apply(lambda row: row.day, axis=1)
             df_stamp["weekday"] = df_stamp.date.apply(lambda row: row.weekday(), axis=1)
             df_stamp["hour"] = df_stamp.date.apply(lambda row: row.hour, axis=1)
-            df_stamp = df_stamp.drop(["date"], axis=1)
+            df_stamp = df_stamp.drop(["date"], axis=1).values
         elif self.timeenc == 1:
             data_stamp = time_features(
                 pd.to_datetime(df_stamp["date"].values), freq=self.freq
@@ -108,15 +108,11 @@ class ETThour_Dataset(Dataset):
 
         s_end = s_begin + self.seq_len
         r_begin = s_end - self.label_len
-        r_end = r_begin + self.seq_len + self.pred_len
+        r_end = r_begin + self.label_len + self.pred_len
         seq_x = self.data_x[s_begin:s_end, feat_id : feat_id + 1]
         seq_y = self.data_y[r_begin:r_end, feat_id : feat_id + 1]
-        seq_x_mark = self.data_stamp[s_begin:s_end]
-        seq_y_mark = self.data_stamp[r_begin:r_end]
 
-        return seq_x, seq_y, seq_x_mark, seq_y_mark
+        return seq_x, seq_y
 
-    def inverse_transform(self, data: np.ndarray) -> np.ndarray:
-        if self.scale:
-            data = self.scaler.inverse_transform(data)
-        return data
+    def inverse_transform(self, data):
+        return self.scaler.inverse_transform(data)
