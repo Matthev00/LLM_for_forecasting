@@ -83,9 +83,7 @@ def train_step(
 ) -> float:
     model.train()
     train_loss = 0.0
-    for i, (batch_x, batch_y, batch_x_mark, batch_y_mark) in tqdm(
-        enumerate(dataloader)
-    ):
+    for i, (batch_x, batch_y) in enumerate(dataloader):
         batch_x = batch_x.float().to(device)
         batch_y = batch_y[-1, :, :].float().to(device)
 
@@ -116,17 +114,16 @@ def valid_step(
     valid_loss, mae_loss = 0.0, 0.0
 
     with torch.no_grad():
-        for i, (batch_x, batch_y, batch_x_mark, batch_y_mark) in tqdm(
-            enumerate(valid_loader)
-        ):
+        for i, (batch_x, batch_y) in tqdm(enumerate(valid_loader)):
             batch_x = batch_x.float().to(device)
-            batch_y = batch_y.float().to(device)
+            batch_y = batch_y[-1, :, :].float().to(device)
 
             outputs = model(batch_x)[0]
 
             f_dim = -1 if args.features == "MS" else 0
-            outputs = outputs[:, -args.pred_len :, f_dim:]
-            batch_y = batch_y[:, -args.pred_len :, f_dim:]
+            outputs = outputs[-args.pred_len :, f_dim:]
+            batch_y = batch_y[-args.pred_len :, f_dim:]
+
             loss = criterion(outputs, batch_y)
             valid_loss += loss.item()
             mae_loss += mae_metric(outputs, batch_y).item()
