@@ -83,7 +83,7 @@ def train_step(
 ) -> float:
     model.train()
     train_loss = 0.0
-    for i, (batch_x, batch_y) in enumerate(dataloader):
+    for batch_x, batch_y in dataloader:
         batch_x = batch_x.float().to(device)
         batch_y = batch_y[-1, :, :].float().to(device)
 

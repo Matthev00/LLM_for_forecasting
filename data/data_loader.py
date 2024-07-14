@@ -82,11 +82,11 @@ class ETThour_Dataset(Dataset):
         df_stamp = df_raw[["date"]][start_border:end_border]
         df_stamp["date"] = pd.to_datetime(df_stamp.date)
         if self.timeenc == 0:
-            df_stamp["month"] = df_stamp.date.apply(lambda row: row.month, axis=1)
-            df_stamp["day"] = df_stamp.date.apply(lambda row: row.day, axis=1)
-            df_stamp["weekday"] = df_stamp.date.apply(lambda row: row.weekday(), axis=1)
-            df_stamp["hour"] = df_stamp.date.apply(lambda row: row.hour, axis=1)
-            df_stamp = df_stamp.drop(["date"], axis=1).values
+            df_stamp["month"] = df_stamp.date.apply(lambda row: row.month, 1)
+            df_stamp["day"] = df_stamp.date.apply(lambda row: row.day, 1)
+            df_stamp["weekday"] = df_stamp.date.apply(lambda row: row.weekday(), 1)
+            df_stamp["hour"] = df_stamp.date.apply(lambda row: row.hour, 1)
+            df_stamp = df_stamp.drop(["date"], 1).values
         elif self.timeenc == 1:
             data_stamp = time_features(
                 pd.to_datetime(df_stamp["date"].values), freq=self.freq
