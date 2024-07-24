@@ -97,7 +97,7 @@ def train_step(
         train_loss += loss.item()
 
         optim.zero_grad()
-        loss.backward
+        loss.backward()
         optim.step()
     return train_loss / len(dataloader)
 
