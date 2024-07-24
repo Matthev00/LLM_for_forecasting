@@ -83,7 +83,7 @@ def train_step(
 ) -> float:
     model.train()
     train_loss = 0.0
-    for batch_x, batch_y in dataloader:
+    for batch_idx, (batch_x, batch_y) in enumerate(train_loader):
         batch_x = batch_x.float().to(device)
         batch_y = batch_y[-1, :, :].float().to(device)
 
@@ -114,7 +114,7 @@ def valid_step(
     valid_loss, mae_loss = 0.0, 0.0
 
     with torch.no_grad():
-        for i, (batch_x, batch_y) in tqdm(enumerate(valid_loader)):
+        for i, (batch_x, batch_y) in enumerate(valid_loader):
             batch_x = batch_x.float().to(device)
             batch_y = batch_y[-1, :, :].float().to(device)
 

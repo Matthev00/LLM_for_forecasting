@@ -92,3 +92,12 @@ def save_model(model: torch.nn.Module, model_name:str):
     dir_path = Path("./model/pretrained")
     dir_path.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), dir_path / model_name)
+
+
+def test_data_loading(train_loader):
+    print("Testing data loading...")
+    for batch_idx, (batch_x, batch_y) in enumerate(train_loader):
+        print(f"Batch {batch_idx + 1}/{len(train_loader)} loaded.")
+        if batch_idx >= 5:  # Testuj tylko kilka batchy
+            break
+    print("Data loading test completed.")
