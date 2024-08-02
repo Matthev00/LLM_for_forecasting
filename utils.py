@@ -1,8 +1,11 @@
 import torch
+from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 import random
 import argparse
 from pathlib import Path
+import os
+import datetime
 
 
 def set_seeds(seed: int = 42):
@@ -101,3 +104,18 @@ def test_data_loading(train_loader):
         if batch_idx >= 5:  # Testuj tylko kilka batchy
             break
     print("Data loading test completed.")
+
+
+def create_writer(experiment_name: str,
+                  model_name: str,
+                  extra: str = None) -> SummaryWriter:
+    
+    timestamp = datetime.now().strftime("%Y-%m-%d")
+    if extra:
+        # Create log directory path
+        log_dir = os.path.join("runs", timestamp, experiment_name, model_name, extra) # noqa 5501
+    else:
+        log_dir = os.path.join("runs", timestamp, experiment_name, model_name)
+
+    return SummaryWriter(log_dir=log_dir)
+
