@@ -1,7 +1,7 @@
 from model.predictor import TimeLLM
 from data.data_factory import data_provider
-from engine import train, train_step
-from utils import set_seeds, parse_argument, load_content, save_model, test_data_loading, create_writer
+from engine import train
+from utils import set_seeds, parse_argument, load_content, save_model, create_writer, load_model
 
 import torch
 from torch import nn
@@ -15,20 +15,20 @@ def main():
     args = parse_argument()
     args.content = load_content(args)
     args.num_workers = os.cpu_count()
-    model = TimeLLM(args).float().to(device)
+    model = TimeLLM(args).float()
 
     train_data, train_loader = data_provider(args, "train")
     vali_data, vali_loader = data_provider(args, "val")
     test_data, test_loader = data_provider(args, "test")
     train_steps = len(train_loader)
 
-    # print(next(iter(train_loader))[0])
-    # test_data_loading(train_loader)
-
     trained_parameters = []
     for p in model.parameters():
         if p.requires_grad is True:
             trained_parameters.append(p)
+
+    model = load_model(model, "time_llm_4_epochs.pth", device=device)
+    model.to(device)
 
     optim = torch.optim.Adam(trained_parameters, lr=args.learning_rate)
 

@@ -37,7 +37,9 @@ def parse_argument():
         "M:multivariate predict multivariate, S: univariate predict univariate, "
         "MS:multivariate predict univariate",
     )
-    parser.add_argument('--target', type=str, default='OT', help='target feature in S or MS task')
+    parser.add_argument(
+        "--target", type=str, default="OT", help="target feature in S or MS task"
+    )
 
     # forecasting task
     parser.add_argument("--seq_len", type=int, default=96, help="input sequence length")
@@ -91,7 +93,7 @@ def load_content(args):
     return content
 
 
-def save_model(model: torch.nn.Module, model_name:str):
+def save_model(model: torch.nn.Module, model_name: str):
     dir_path = Path("./model/pretrained")
     dir_path.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), dir_path / model_name)
@@ -106,16 +108,25 @@ def test_data_loading(train_loader):
     print("Data loading test completed.")
 
 
-def create_writer(experiment_name: str,
-                  model_name: str,
-                  extra: str = None) -> SummaryWriter:
-    
+def create_writer(
+    experiment_name: str, model_name: str, extra: str = None
+) -> SummaryWriter:
     timestamp = datetime.now().strftime("%Y-%m-%d")
     if extra:
         # Create log directory path
-        log_dir = os.path.join("runs", timestamp, experiment_name, model_name, extra) # noqa 5501
+        log_dir = os.path.join(
+            "runs", timestamp, experiment_name, model_name, extra
+        )  # noqa 5501
     else:
         log_dir = os.path.join("runs", timestamp, experiment_name, model_name)
 
     return SummaryWriter(log_dir=log_dir)
 
+
+def load_model(
+    model: torch.nn.Module, model_name: str, device: torch.device = "cuda:0"
+):
+    dir_path = Path("./model/pretrained")
+    state_dict = torch.load(f=(dir_path / model_name), map_location=device)
+    model.load_state_dict(state_dict, strict=False)
+    return model
