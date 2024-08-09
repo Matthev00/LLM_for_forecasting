@@ -1,7 +1,7 @@
 from model.predictor import TimeLLM
 from data.data_factory import data_provider
 from engine import train, train_step
-from utils import set_seeds, parse_argument, load_content, save_model, test_data_loading
+from utils import set_seeds, parse_argument, load_content, save_model, test_data_loading, create_writer
 
 import torch
 from torch import nn
@@ -53,6 +53,7 @@ def main():
         device=device,
         valid_loader=vali_loader,
         epochs=10,
+        writer=create_writer("5_epochs", "time_llm_gpt2")
     )
 
     save_model(model, "time_llm_test.pth")
