@@ -1,2 +1,3 @@
 *.pyc
 data/dataset
+model/pretrained/
