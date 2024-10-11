@@ -1,3 +1,4 @@
 *.pyc
 data/dataset
 model/pretrained/
+.venv
