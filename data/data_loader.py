@@ -67,7 +67,9 @@ class ETThour_Dataset(Dataset):
         end_border = end_borders[self.type]
 
         if self.type == 0:
-            end_border = (end_border - self.seq_len) * self.percent // 100 + self.seq_len
+            end_border = (
+                end_border - self.seq_len
+            ) * self.percent // 100 + self.seq_len
 
         if self.features == "M" or self.features == "MS":
             cols_data = df_raw.columns[1:]

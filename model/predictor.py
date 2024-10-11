@@ -52,7 +52,7 @@ class TimeLLM(nn.Module):
 
     def forward(self, x_enc) -> Tensor:
         dec_out = self.forecast(x_enc)
-        return dec_out[:, -self.configs.pred_len:, :]
+        return dec_out[:, -self.configs.pred_len :, :]
 
     def forecast(self, x_enc) -> Tensor:
         x_enc = self.normalize_layer(x_enc, mode="norm")
@@ -87,7 +87,7 @@ class TimeLLM(nn.Module):
         )
         dec_out = dec_out.permute(0, 1, 3, 2).contiguous()
 
-        dec_out = self.output_projection(dec_out[:, :, :, -self.patch_nums:])
+        dec_out = self.output_projection(dec_out[:, :, :, -self.patch_nums :])
         dec_out = dec_out.permute(0, 2, 1).contiguous()
 
         dec_out = self.normalize_layer(dec_out, "denorm")
